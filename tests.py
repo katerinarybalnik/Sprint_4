@@ -1,6 +1,7 @@
 from main import BooksCollector
 import pytest
 
+
 # класс TestBooksCollector объединяет набор тестов, которыми мы покрываем наше приложение BooksCollector
 # обязательно указывать префикс Test
 class TestBooksCollector:
@@ -21,15 +22,33 @@ class TestBooksCollector:
         # словарь books_genre, который нам возвращает метод get_books_genre, имеет длину 2
         assert len(collector.get_books_genre()) == 2
 
-        #проверка,что у новой книги нет жанра
+    # Проверка добавления книг с допустимой длиной имени
+    @pytest.mark.parametrize('name', ['А', 'А' * 40])
+    def test_add_new_book_valid_name(self, name):
+        collector = BooksCollector()
+
+        collector.add_new_book(name)
+
+        assert name in collector.get_books_genre()
+
+    # Проверка, что книги с недопустимой длиной имени не добавляются
+    @pytest.mark.parametrize('name', ['', 'А' * 41])
+    def test_add_new_book_invalid_name(self, name):
+        collector = BooksCollector()
+
+        collector.add_new_book(name)
+
+        assert name not in collector.get_books_genre()
+
+    # Проверка, что у новой книги нет жанра
     def test_add_new_book_has_empty_genre(self):
         collector = BooksCollector()
 
         collector.add_new_book('Фиксики')
 
         assert collector.get_book_genre('Фиксики') == ''
-    
-        # Проверка, что устанавливается жанр книги
+
+    # Проверка, что устанавливается жанр книги
     def test_set_book_genre(self):
         collector = BooksCollector()
 
@@ -37,9 +56,8 @@ class TestBooksCollector:
         collector.set_book_genre('Феиринки', 'Мультфильмы')
 
         assert collector.get_book_genre('Феиринки') == 'Мультфильмы'
-    
-    
-        # Проверка получения жанра книги по названию
+
+    # Проверка получения жанра книги по названию
     def test_get_book_genre(self):
         collector = BooksCollector()
 
@@ -47,9 +65,8 @@ class TestBooksCollector:
         collector.set_book_genre('Феиринки', 'Мультфильмы')
 
         assert collector.get_book_genre('Феиринки') == 'Мультфильмы'
-        
-    
-        # Проверка получения списка книг определенного жанра
+
+    # Проверка получения списка книг определенного жанра
     def test_get_books_with_specific_genre(self):
         collector = BooksCollector()
 
@@ -60,8 +77,8 @@ class TestBooksCollector:
         collector.set_book_genre('Один дома', 'Ужасы')
 
         assert collector.get_books_with_specific_genre('Мультфильмы') == ['Феиринки']
-    
-        # Проверка получения словаря всех книг
+
+    # Проверка получения словаря всех книг
     def test_get_books_genre(self):
         collector = BooksCollector()
 
@@ -69,23 +86,26 @@ class TestBooksCollector:
 
         assert collector.get_books_genre() == {'Феиринки': ''}
 
-        # Проверка книг, которые подходят детям
-    @pytest.mark.parametrize('genre, result', [('Мультфильмы',True),('Ужасы', False),('Детективы', False)])
-    def test_get_books_for_children(self, genre, result):
+    # Проверка, что книги без возрастного ограничения попадают в список для детей
+    def test_get_books_for_children(self):
         collector = BooksCollector()
 
         collector.add_new_book('Книга')
+        collector.set_book_genre('Книга', 'Мультфильмы')
 
+        assert collector.get_books_for_children() == ['Книга']
+
+    # Проверка, что книги с возрастным ограничением не попадают в список для детей
+    @pytest.mark.parametrize('genre', ['Ужасы', 'Детективы'])
+    def test_get_books_for_children_age_rating(self, genre):
+        collector = BooksCollector()
+
+        collector.add_new_book('Книга')
         collector.set_book_genre('Книга', genre)
 
-        books = collector.get_books_for_children()
+        assert 'Книга' not in collector.get_books_for_children()
 
-        if result:
-            assert 'Книга' in books
-        else:
-            assert 'Книга' not in books
-
-        # Проверка добавления книги в избранное
+    # Проверка добавления книги в избранное
     def test_add_book_in_favorites(self):
         collector = BooksCollector()
 
@@ -94,8 +114,7 @@ class TestBooksCollector:
 
         assert collector.get_list_of_favorites_books() == ['Поющие в терновнике']
 
-
-        # Проверка удаления книги из избранного
+    # Проверка удаления книги из избранного
     def test_delete_book_from_favorites(self):
         collector = BooksCollector()
 
@@ -106,7 +125,7 @@ class TestBooksCollector:
 
         assert collector.get_list_of_favorites_books() == []
 
-        # Проверка получения списка избранных книг
+    # Проверка получения списка избранных книг
     def test_get_list_of_favorites_books(self):
         collector = BooksCollector()
 
@@ -114,9 +133,6 @@ class TestBooksCollector:
         collector.add_book_in_favorites('Поющие в терновнике')
 
         assert collector.get_list_of_favorites_books() == ['Поющие в терновнике']
-
-
-
     
 
 
